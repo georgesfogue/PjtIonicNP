@@ -1,78 +1,81 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
-//import { AddCategoryPage } from '../pages/Category/Addcategory';
 import { CategoryService } from './category.service';
 import { AlertController } from 'ionic-angular';
+import { ToastController } from 'ionic-angular';
+import { CategoryClass } from  './categoryModel';
 
 
 @Component({
   selector: 'page-category',
-  providers:[ CategoryService ],
+  providers:[ CategoryService],
   templateUrl: 'Category.html'
 })
 export class CategoryPage implements OnInit {
 
-  public allcat: any[];
-  public getData: string;
+  errorMessage: string;
+  categories: CategoryClass[];
+  selectedCategory: CategoryClass;
+  newcategory: CategoryClass = null;
   
   
   constructor(
     public navCtrl: NavController, 
     public navParams: NavParams, 
     public alertCtrl: AlertController, 
-    private catservice: CategoryService) {}
+    private catservice: CategoryService,
+    public toastCtrl: ToastController) {}
+  
+  ngOnInit(): void {
+    this.getCategory();
+    console.log(this.categories); 
+  }
 
-  ngOnInit(){ 
+  getCategory(){
     this.catservice.getCategory().subscribe(
-      data =>{ this.allcat = data},
-       err => console.error(err),
-       //() => console.log(this.allcat),
-      null
-    );
+      catg => this.categories = catg,
+      error => this.errorMessage = <any>error);
+  }
+  NewCategory(){
+    this.newcategory = new CategoryClass;
+    this.selectedCategory = null;
+  }
+  savenewcategory(newcat: CategoryClass){
+    this.catservice.postCats(newcat)
+    .subscribe(
+      categorie => this.categories.push(categorie), 
+      error => this.errorMessage = <any>error);
+      let toast = this.toastCtrl.create({
+        message: `Categorie ajoutée`,
+        duration: 3000
+      });
+      toast.present();
+      this.newcategory = null;
   }
 
-  newcategory(){
-    console.log("ajoueter cat");
-
-    //this.navCtrl.push('');
-
-  }
-
-showPrompt() {
-    let prompt = this.alertCtrl.create({
-      title: 'Ajouter une note',
-      //message: "Ajouter une novelle note",
-      inputs: [
-        {
-          name: 'categorie',
-          placeholder: 'Categorie'
-        },
-      ],
-      buttons: [
-        {
-          text: 'Cancel',
-          handler: data => {
-            console.log('Cancel clicked');
-          }
-        },
-        {
-          text: 'Save',
-          handler: data => {  
-            console.log('Saved clicked');
-          }
-        }
-      ]
+  delcat(cate: CategoryClass): void {
+    this.catservice.delcategory(cate.id)
+    .then(() => {
+      this.categories = this.categories.filter(h => h !== cate);
+          if (this.selectedCategory === cate) { this.selectedCategory = null; }
     });
-    prompt.present();
+  }
+  editcat(cat: CategoryClass){
+    this.newcategory = null;
+    this.selectedCategory = new CategoryClass;
+    this.selectedCategory = cat;     
   }
 
-  savenewcat(cat: string){
-    this.catservice.postCats(cat).subscribe(
-        data => this.getData = JSON.stringify(data),
-        error => alert(error),
-        ()=> console.log("terminer")
-      );
-    console.log(this.getData);
+  savecategory(categ: CategoryClass){
+    this.catservice.updatecategory(categ)
+    .subscribe(
+      note => this.categories.push(note), 
+      error => this.errorMessage = <any>error);
+      this.canceledit();
+  }
+  canceledit(){
+    this.newcategory = null;
+    this.selectedCategory = null;
   }
 
 }

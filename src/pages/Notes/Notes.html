@@ -3,26 +3,93 @@
     <button ion-button menuToggle><ion-icon name="menu"></ion-icon></button>
     <ion-title>Notes</ion-title>
     <ion-buttons end>
-      <button ion-button icon-only (click)="newnote()"><ion-icon name="create"></ion-icon></button>
+      <button ion-button icon-only (click)="NewNote()"><ion-icon name="add"></ion-icon></button>
     </ion-buttons> 
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  <ion-card *ngFor="let alnot of allnot">
+
+  <!-- Ajouter une note-->
+  <ion-list *ngIf = "newnote">
+
+    <ion-item>
+      <ion-label floating>Title</ion-label>
+      <ion-input type="text" id = "title" required="true" [(ngModel)]="newnote.title"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label floating>Content</ion-label>
+      <ion-textarea type="text" required="true" [(ngModel)]="newnote.content"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Date</ion-label>
+      <ion-datetime displayFormat="DD/MM/YYYY" [(ngModel)]="newnote.date" required="true"></ion-datetime>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Category</ion-label>
+      <ion-select  [(ngModel)]="newnote.categorie" required = "true">
+        <ion-option *ngFor = "let catg of ctgries">{{catg.nom}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <button ion-button (click) = "canceledit()">Annuler</button>
+      <button ion-button color="secondary" (click) = "savenewnote(newnote)" [disabled]="!newnote.title || !newnote.content || !newnote.date || !newnote.categorie">Sauver</button>
+    </ion-item>
+
+  </ion-list>
+
+  <!-- Modifier une note-->
+  <ion-list *ngIf = "selectedNote">
+
+    <ion-item>
+      <ion-label floating>Title</ion-label>
+      <ion-input type="text" required="true" [(ngModel)]="selectedNote.title"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label floating>Content</ion-label>
+      <ion-textarea rows="4" type="text" required="true" [(ngModel)]="selectedNote.content"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Date</ion-label>
+      <ion-datetime displayFormat="DD/MM/YYYY" required="true" [(ngModel)]="selectedNote.date"></ion-datetime>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Category</ion-label>
+      <ion-select  required="true" [(ngModel)]="selectedNote.categorie.name">
+        <ion-option >{{selectedNote.categorie.name}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <button ion-button (click) = "canceledit()">Annuler</button>
+      <button ion-button color="secondary" (click) = "savenote(selectedNote)">Sauver</button>
+    </ion-item>
+
+  </ion-list>
+
+  <!-- Liste des notes  -->
+  <ion-card *ngFor="let alnot of notes">
     <ion-card-content>
-      <ion-card-title>
-        <b>{{alnot.title}}</b> 
-      </ion-card-title>
-      <b>{{alnot.categorie.nom}}</b> -
-      <span class="item-note">{{alnot.date.timestamp* 1000|date: 'dd/MM/yyyy'}}</span><br>
-      <button ion-button icon-only  (click) = "dellnotes(alnot.id)" clear small>
-        <ion-icon name="trash"></ion-icon>
-      </button>
-      <button ion-button icon-only clear  small>
-        <ion-icon ios="ios-create-outline" md="ios-create"></ion-icon>
-      </button>
+      <ion-card-title color="primary">{{alnot.title}}</ion-card-title>
+      <b>{{alnot.categorie.name}}</b> -
+      <span class="item-note">{{alnot.date|date: 'dd/MM/yyyy'}}</span><br>
      <p small>{{alnot.content}}</p>
     </ion-card-content>
+    <ion-row>
+    <ion-col>
+      <button ion-button color="primary" clear small icon-left (click) = "editnote(alnot)"><ion-icon name='create'></ion-icon>Modifier</button>
+    </ion-col>
+    <ion-col>
+      <button ion-button color="danger" clear small icon-left (click) = "delnotes(alnot)"><ion-icon name='trash'></ion-icon>Supprimer</button>
+    </ion-col>
+  </ion-row>
   </ion-card>
+
 </ion-content>

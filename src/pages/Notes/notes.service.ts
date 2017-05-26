@@ -1,54 +1,60 @@
 import {Injectable} from "@angular/core";
-import { Http, Response} from '@angular/http';
-//import {Observable} from 'rxjs/Rx'; //Reactive extensions for JavaScript
+import { Headers, Http, Response} from '@angular/http';
+import 'rxjs/add/operator/toPromise';
+import {Observable} from 'rxjs/Rx'; //Reactive extensions for JavaScript
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+
 import { NotesClass } from  './notesModel';
 
 @Injectable()
 export class NotesService {
-    static get parameters() {
-        return [[Http]];
-    }
-    private  baseUrl = 'http://localhost/notepad/web/notepad/api/';
-    private _notes: BehaviorSubject<NotesClass[]>;
-    private savedata: {notes: NotesClass[]};
-	constructor(private http:Http) {}
 
-    getnotes(){
-        return this.http.get(this.baseUrl + 'notes')
-        .map((res:Response) => res.json());
+    private headers = new Headers({'Content-Type': 'application/json'});
+    private  baseUrl = 'http://localhost/notepad/web/notepad/api';  // URL to web api
+    constructor(private http:Http) {}
+
+    getNotes(): Observable<NotesClass[]> { 
+        const url = `${this.baseUrl}/notes`;
+        return this.http.get(url).map(this.extractData).catch(this.handleError);
     }
 
-    newNote(title: string, content: string, category: string) {
-        var body = JSON.stringify(
-            {
-                "title": title,
-                "content": content,
-                "categorie": category
-            }
-        );
-        console.log(body);
-        const url = this.baseUrl + 'notes_post';
-        return this.http.post(url, body, {})
-        .map((res: Response) => res.json());
+    newNote(note: NotesClass): Observable<NotesClass>{
+    //const cat_id = note.categorie.id;
+    const url = this.baseUrl + '/notes_post';
+    return this.http.post(url, JSON.stringify(note), {})
+    .map(this.extractData)
+    .catch(this.handleError);
   }
+  delNote(id: number): Promise<void> {
+      const url = `${this.baseUrl}/notes_del/${id}`;
+      return this.http.delete(url, {headers: this.headers})
+        .toPromise()
+        .then(() => null)
+        .catch(this.handleError);
+    }
 
-  deleteNote(id: number) {
-    const url = this.baseUrl + 'notes_del/' + id;
-    return this.http.delete(url, {})
-      .map((res: Response) => res.json());
+    updatenote(note: NotesClass): Observable<NotesClass>{
+        const url = `${this.baseUrl}/notes_put/${note.id}`;
+        return this.http.put(url, JSON.stringify(note), {})
+        .map(this.extractData)
+        .catch(this.handleError);
+    }
+  private extractData(res: Response) {
+    let body = res.json();
+    return body || { };
   }
-
-  DelNote(noteId: number){
-    this.http.delete(`${this.baseUrl}notes_del/${noteId}`).subscribe(response => {
-      this.savedata.notes.forEach((t, i) => {
-        if (t.idn === noteId) { this.savedata.notes.splice(i, 1); }
-      });
-
-      this._notes.next(Object.assign({}, this.savedata).notes);
-    }, error => console.log('La note ne peut pas etre supprimer.'));
+  private handleError (error: Response | any) {
+    // In a real world app, you might use a remote logging infrastructure
+    let errMsg: string;
+    if (error instanceof Response) {
+      const body = error.json() || '';
+      const err = body.error || JSON.stringify(body);
+      errMsg = `${error.status} - ${error.statusText || ''} ${err}`;
+    } else {
+      errMsg = error.message ? error.message : error.toString();
+    }
+    console.error(errMsg);
+    return Observable.throw(errMsg);
   }
-
 }

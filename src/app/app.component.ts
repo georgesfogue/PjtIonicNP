@@ -2,11 +2,8 @@ import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
-
 import { NotesPage } from '../pages/Notes/Notes';
 import { CategoryPage } from '../pages/Category/Category';
-//import { AddNotesPage } from '../pages/Notes/addnote';
-//import { AddCategoryPage } from '../pages/Category/Addcategory';
 
 @Component({
   templateUrl: 'app.html'

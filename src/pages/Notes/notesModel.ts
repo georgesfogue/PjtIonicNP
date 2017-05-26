@@ -1,7 +1,9 @@
+import { CategoryClass } from '../Category/categoryModel';
+
 export class NotesClass {
-  idn: number | string;
+  id: number ;
   title: string;
-  dates: any;
+  date: Date;
   content: string;
-  categorie: string;
+  categorie: CategoryClass;
 }
